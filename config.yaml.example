@@ -1,0 +1,18 @@
+# Stock Application Configuration
+
+stockbit:
+  base_url: https://api.stockbit.com
+  tokens:
+    - something-big-is-coming
+
+database:
+  host: localhost
+  port: 5432
+  username: postgres
+  password: postgres
+  db: stock
+  scheme: postgres
+  max_idle_conns: 10
+  max_open_conns: 100
+  conn_max_lifetime: 1h
+  ssl_mode: disable

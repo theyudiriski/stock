@@ -1,0 +1,24 @@
+# Stock app – example crontab
+# Install: crontab -e, then paste and adjust paths/schedules.
+# Ensure /opt/stock/stock exists and is executable, and config.yaml is in /opt/stock/.
+
+SHELL=/bin/bash
+PATH=/usr/local/bin:/usr/bin:/bin
+
+# Daily: emitten profiles at 02:00
+0 2 * * * cd /opt/stock && ./stock -type=cronjob-upsert-emitten-profile -config config.yaml >> /var/log/stock.log 2>&1
+
+# Daily: broker summary at 03:00
+0 3 * * * cd /opt/stock && ./stock -type=cronjob-upsert-broker-summary -config config.yaml >> /var/log/stock.log 2>&1
+
+# Daily: price feed at 04:00
+0 4 * * * cd /opt/stock && ./stock -type=cronjob-upsert-price-feed -config config.yaml >> /var/log/stock.log 2>&1
+
+# Weekly: subsector (Sunday 01:00)
+0 1 * * 0 cd /opt/stock && ./stock -type=cronjob-upsert-subsector -config config.yaml >> /var/log/stock.log 2>&1
+
+# Weekly: emitten profile info (Sunday 01:30)
+30 1 * * 0 cd /opt/stock && ./stock -type=cronjob-upsert-emitten-profile-info -config config.yaml >> /var/log/stock.log 2>&1
+
+# Weekly: emitten underwriter code (Sunday 02:00)
+0 2 * * 0 cd /opt/stock && ./stock -type=cronjob-update-emitten-underwriter-code -config config.yaml >> /var/log/stock.log 2>&1
