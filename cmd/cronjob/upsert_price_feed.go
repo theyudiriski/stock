@@ -4,8 +4,8 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"net/http"
 	"stock/config"
+	"stock/internal/httpclient"
 	"stock/internal/postgres"
 	"stock/internal/service"
 	"stock/internal/stockbit"
@@ -16,7 +16,7 @@ import (
 func NewUpsertPriceFeed(fromDate, toDate, symbols string) *upsertPriceFeed {
 	ctx, cancel := context.WithCancel(context.Background())
 
-	stockbit := stockbit.NewStockbit(http.DefaultClient)
+	stockbit := stockbit.NewStockbit(httpclient.New())
 
 	db, err := postgres.NewClient(config.LoadDatabase(), false)
 	if err != nil {

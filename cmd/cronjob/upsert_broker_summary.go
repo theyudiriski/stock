@@ -4,8 +4,8 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"net/http"
 	"stock/config"
+	"stock/internal/httpclient"
 	"stock/internal/postgres"
 	"stock/internal/service"
 	"stock/internal/stockbit"
@@ -26,7 +26,7 @@ func NewUpsertBrokerSummary(fromDate, toDate, symbols string) *upsertBrokerSumma
 	emittenStore := postgres.NewEmittenStore(db)
 	brokerSummaryStore := postgres.NewBrokerSummaryStore(db)
 
-	stockbit := stockbit.NewStockbit(http.DefaultClient)
+	stockbit := stockbit.NewStockbit(httpclient.New())
 
 	return &upsertBrokerSummary{
 		stockbit:           stockbit,

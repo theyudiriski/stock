@@ -1,7 +1,5 @@
-# Stock Application Configuration
-
 stockbit:
-  base_url: https://api.stockbit.com
+  base_url: https://exodus.stockbit.com
   tokens:
     - something-big-is-coming
 
@@ -14,5 +12,13 @@ database:
   scheme: postgres
   max_idle_conns: 10
   max_open_conns: 100
-  conn_max_lifetime: 1h
+  conn_max_lifetime: 10m
   ssl_mode: disable
+
+proxy:
+  enabled: true
+  scheme: https
+  host: gw.dataimpulse.com
+  port: 8800
+  username: my-username
+  password: my-password
