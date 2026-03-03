@@ -4,20 +4,22 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"log/slog"
 	"stock/config"
 	"stock/internal/httpclient"
+	"stock/internal/logger"
 	"stock/internal/postgres"
 	"stock/internal/service"
 	"stock/internal/stockbit"
-	"strings"
 	"sync"
 	"time"
-
-	retry "github.com/avast/retry-go/v4"
 )
 
 func NewUpsertBrokerSummary(fromDate, toDate, symbols string) *upsertBrokerSummary {
 	ctx, cancel := context.WithCancel(context.Background())
+
+	logger.Init()
+	log := logger.Default
 
 	db, err := postgres.NewClient(config.LoadDatabase(), false)
 	if err != nil {
@@ -26,9 +28,10 @@ func NewUpsertBrokerSummary(fromDate, toDate, symbols string) *upsertBrokerSumma
 	emittenStore := postgres.NewEmittenStore(db)
 	brokerSummaryStore := postgres.NewBrokerSummaryStore(db)
 
-	stockbit := stockbit.NewStockbit(httpclient.New())
+	stockbit := stockbit.NewStockbit(log, httpclient.New())
 
 	return &upsertBrokerSummary{
+		logger:             log,
 		stockbit:           stockbit,
 		emittenStore:       emittenStore,
 		brokerSummaryStore: brokerSummaryStore,
@@ -37,11 +40,12 @@ func NewUpsertBrokerSummary(fromDate, toDate, symbols string) *upsertBrokerSumma
 
 		fromDate: fromDate,
 		toDate:   toDate,
-		symbols:  strings.Split(symbols, ","),
+		symbols:  parseSymbols(symbols),
 	}
 }
 
 type upsertBrokerSummary struct {
+	logger             *slog.Logger
 	stockbit           service.Stockbit
 	emittenStore       service.EmittenStore
 	brokerSummaryStore service.BrokerSummaryStore
@@ -60,17 +64,16 @@ type brokerSummary struct {
 }
 
 func (u *upsertBrokerSummary) Run() (err error) {
+	start := time.Now()
 	ctx := u.ctx
 
 	emittens := u.symbols
 	if len(emittens) < 1 {
 		emittens, err = u.emittenStore.GetEmittens(ctx)
 		if err != nil {
+			u.logger.Error("failed to get emittens", "error", err)
 			return err
 		}
-	}
-	if err != nil {
-		return err
 	}
 
 	from, err := time.Parse(time.DateOnly, u.fromDate)
@@ -99,24 +102,21 @@ func (u *upsertBrokerSummary) Run() (err error) {
 				if date.Weekday() != time.Saturday && date.Weekday() != time.Sunday {
 					summaryDate := date.Format(time.DateOnly)
 
-					result, err := retry.DoWithData(
-						func() (*brokerSummary, error) {
-							foreignSummary, err := u.stockbit.GetBrokerSummary(ctx, emitten, summaryDate, service.InvestorTypeForeign, service.MarketBoardRegular)
-							if err != nil {
-								return nil, err
-							}
+					result, err := stockbit.Retryable(func() (*brokerSummary, error) {
+						foreignSummary, err := u.stockbit.GetBrokerSummary(ctx, emitten, summaryDate, service.InvestorTypeForeign, service.MarketBoardRegular)
+						if err != nil {
+							return nil, err
+						}
 
-							domesticSummary, err := u.stockbit.GetBrokerSummary(ctx, emitten, summaryDate, service.InvestorTypeDomestic, service.MarketBoardRegular)
-							if err != nil {
-								return nil, err
-							}
+						domesticSummary, err := u.stockbit.GetBrokerSummary(ctx, emitten, summaryDate, service.InvestorTypeDomestic, service.MarketBoardRegular)
+						if err != nil {
+							return nil, err
+						}
 
-							return &brokerSummary{foreign: foreignSummary, domestic: domesticSummary}, nil
-						},
-						retry.Attempts(5),
-						retry.Delay(1*time.Second),
-					)
+						return &brokerSummary{foreign: foreignSummary, domestic: domesticSummary}, nil
+					}).WithRetry()
 					if err != nil {
+						u.logger.Warn("failed to get broker summary", "symbol", emitten, "date", summaryDate, "error", err)
 						errs <- err
 						return
 					}
@@ -133,12 +133,15 @@ func (u *upsertBrokerSummary) Run() (err error) {
 					if len(summary.Data.BrokerSummary.BrokersBuy) > 0 || len(summary.Data.BrokerSummary.BrokersSell) > 0 {
 						err = u.brokerSummaryStore.UpsertBrokerSummary(ctx, emitten, summaryDate, summary)
 						if err != nil {
+							u.logger.Warn("failed to upsert broker summary", "symbol", emitten, "date", summaryDate, "error", err)
 							errs <- err
 							return
 						}
 					}
 				}
 			}
+
+			u.logger.Info("successfully upserted broker summary", "symbol", emitten)
 		}(emittens[i])
 	}
 
@@ -149,9 +152,11 @@ func (u *upsertBrokerSummary) Run() (err error) {
 		return fmt.Errorf("failed to upsert broker summary: %w", errors.Join(<-errs))
 	}
 
+	u.logger.Info("successfully upserted broker summary", "duration", time.Since(start), "fromDate", u.fromDate, "toDate", u.toDate)
 	return nil
 }
 
 func (u *upsertBrokerSummary) Stop() error {
+	u.cancel()
 	return nil
 }
