@@ -71,17 +71,14 @@ func GetBool(key string) bool {
 	return v.GetBool(key)
 }
 
-// GetStringOptional returns string value or empty string if not set
 func GetStringOptional(key string) string {
 	return strings.TrimSpace(v.GetString(key))
 }
 
-// GetIntOptional returns int value or 0 if not set
 func GetIntOptional(key string) int {
 	return v.GetInt(key)
 }
 
-// GetDurationOptional returns duration or 0 if not set
 func GetDurationOptional(key string) time.Duration {
 	return v.GetDuration(key)
 }
