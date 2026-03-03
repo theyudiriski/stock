@@ -25,6 +25,11 @@ type EmittenProfile struct {
 	Shareholder                     []Shareholder       `json:"shareholder"`
 	ShareholderDirectorCommissioner []Shareholder       `json:"shareholder_director_commissioner"`
 	ShareholderNumbers              []ShareholderNumber `json:"shareholder_numbers"`
+	Beneficiary                     []Beneficiary       `json:"beneficiary"`
+}
+
+type Beneficiary struct {
+	Name string `json:"name"`
 }
 
 type History struct {

@@ -26,7 +26,7 @@ type emittenStore struct {
 
 func (s *emittenStore) GetEmittens(ctx context.Context) ([]string, error) {
 	rows, err := s.db.Leader.QueryContext(ctx, `
-		SELECT symbol FROM emittens;
+		SELECT symbol FROM emittens ORDER BY symbol;
 	`)
 	if err != nil {
 		return nil, err
@@ -180,6 +180,34 @@ func (s *emittenStore) UpsertEmittenProfile(ctx context.Context, symbol string, 
 		}
 	}
 
+	// Insert beneficiaries
+	_, err = tx.ExecContext(ctx, `
+		DELETE FROM
+			emitten_beneficiaries
+		WHERE
+			symbol = $1;
+	`,
+		symbol,
+	)
+	if err != nil {
+		return fmt.Errorf("failed to delete old beneficiaries: %w", err)
+	}
+
+	for i := range profile.Beneficiary {
+		_, err = tx.ExecContext(ctx, `
+			INSERT INTO emitten_beneficiaries (
+				symbol,
+				beneficiary_name
+			) VALUES ($1, $2);
+		`,
+			symbol,
+			strings.TrimSpace(profile.Beneficiary[i].Name),
+		)
+		if err != nil {
+			return fmt.Errorf("failed to insert beneficiary: %w", err)
+		}
+	}
+
 	if err := tx.Commit(); err != nil {
 		return err
 	}
@@ -236,7 +264,7 @@ func (s *emittenStore) UpsertEmittenProfileInfo(
 			if err != nil {
 				return nil
 			}
-			return GetPointer(freeFloat.Div(decimal.NewFromInt(100)).InexactFloat64())
+			return service.GetPointer(freeFloat.Div(decimal.NewFromInt(100)).InexactFloat64())
 		}(),
 		func() int {
 			for i := range info.Catalogs {
@@ -260,10 +288,6 @@ func (s *emittenStore) UpsertEmittenProfileInfo(
 	}
 
 	return nil
-}
-
-func GetPointer[T any](val T) *T {
-	return &val
 }
 
 func (s *emittenStore) GetEmittensUnderwriters(ctx context.Context) ([]service.EmittenUnderwriters, error) {

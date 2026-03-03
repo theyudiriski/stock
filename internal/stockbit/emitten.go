@@ -7,7 +7,9 @@ import (
 	"io"
 	"net/http"
 	"net/url"
+	"slices"
 	"stock/internal/service"
+	"time"
 )
 
 func (s *stockbit) GetEmittenProfile(ctx context.Context, symbol string) (*service.EmittenProfile, error) {
@@ -21,7 +23,8 @@ func (s *stockbit) GetEmittenProfile(ctx context.Context, symbol string) (*servi
 		return nil, err
 	}
 
-	r.Header.Set("Authorization", "Bearer "+s.getToken(symbol))
+	uniqueHash := fmt.Sprintf("%s-%d", symbol, time.Now().UnixMilli())
+	r.Header.Set("Authorization", "Bearer "+s.getToken(uniqueHash))
 
 	response, err := s.client.Do(r)
 	if err != nil {
@@ -43,6 +46,15 @@ func (s *stockbit) GetEmittenProfile(ctx context.Context, symbol string) (*servi
 	if err != nil {
 		return nil, err
 	}
+
+	// loop through emitten beneficiaries to preserve uniqueness
+	beneficiaries := make([]service.Beneficiary, 0)
+	for i := range emittenProfile.Data.Beneficiary {
+		if !slices.Contains(beneficiaries, emittenProfile.Data.Beneficiary[i]) {
+			beneficiaries = append(beneficiaries, emittenProfile.Data.Beneficiary[i])
+		}
+	}
+	emittenProfile.Data.Beneficiary = beneficiaries
 
 	return &emittenProfile.Data, nil
 }
