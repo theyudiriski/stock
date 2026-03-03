@@ -2,7 +2,6 @@ package main
 
 import (
 	"errors"
-	"log"
 	"net/http"
 	"os"
 	"os/signal"
@@ -10,6 +9,8 @@ import (
 	"sync"
 	"syscall"
 	"time"
+
+	"stock/internal/logger"
 )
 
 type Runner interface {
@@ -27,7 +28,6 @@ func RunApp(app Runner) error {
 	stopFunc := func() error {
 		stopOnce.Do(func() {
 			stopErr = app.Stop()
-			log.Printf("[runner] calling app.Stop()")
 			// Send to done channel only once
 			done <- stopErr
 		})
@@ -44,7 +44,7 @@ func cleanupOnInterrupt(stopFunc func() error) {
 	signal.Notify(c, os.Interrupt, syscall.SIGTERM, syscall.SIGINT)
 	go func() {
 		s := <-c
-		log.Printf("[runner] got signal %v", s)
+		logger.Default.Info("got signal", "signal", s.String())
 		stopFunc()
 	}()
 }
@@ -52,7 +52,7 @@ func cleanupOnInterrupt(stopFunc func() error) {
 func recoveredRun(done chan error, app Runner, stopFunc func() error) {
 	defer func() {
 		if err := recover(); err != nil {
-			log.Println("stacktrace from panic: \n" + string(debug.Stack()))
+			logger.Default.Error("panic recovered", "panic", err, "stack", string(debug.Stack()))
 			stopFunc()
 			return
 		}
@@ -66,10 +66,10 @@ func recoveredRun(done chan error, app Runner, stopFunc func() error) {
 			WriteTimeout: 10 * time.Second,
 			IdleTimeout:  2 * time.Minute,
 		}
-		err := server.ListenAndServe()
 
+		err := server.ListenAndServe()
 		if err != nil {
-			log.Printf("[runner] got error after ListenAndServe %v", err)
+			logger.Default.Error("failed to listen and serve", "error", err)
 			done <- err
 		}
 	}()
@@ -77,7 +77,7 @@ func recoveredRun(done chan error, app Runner, stopFunc func() error) {
 	err := app.Run()
 	if err != nil {
 		if !errors.Is(err, http.ErrServerClosed) {
-			log.Printf("[runner] got error after Run %v", err)
+			logger.Default.Error("failed to run app", "error", err)
 			stopFunc()
 			return
 		}

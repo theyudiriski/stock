@@ -66,18 +66,26 @@ func main() {
 	)
 
 	defer func() {
-		_ = shutdown(context.Background())
+		if shutdown != nil {
+			_ = shutdown(context.Background())
+		}
 	}()
 
 	// Choose runner based on type.
 	var runner Runner
 	switch serverType {
-	// case "cronjob-upsert-emitten-profile":
-	// 	runner = cronjob.NewUpsertEmittenProfile()
+	case "cronjob-upsert-emitten-profile":
+		runner = cronjob.NewUpsertEmittenProfile(symbols)
 	case "cronjob-upsert-broker-summary":
 		runner = cronjob.NewUpsertBrokerSummary(fromDate, toDate, symbols)
 	case "cronjob-upsert-price-feed":
 		runner = cronjob.NewUpsertPriceFeed(fromDate, toDate, symbols)
+	case "cronjob-upsert-corporate-action":
+		runner = cronjob.NewUpsertCorporateAction(symbols)
+	case "cronjob-upsert-emitten-company-subsidiary":
+		runner = cronjob.NewUpsertEmittenCompanySubsidiary(symbols)
+	case "cronjob-upsert-shareholder-chart":
+		runner = cronjob.NewUpsertShareholderChart(symbols)
 	// case "cronjob-upsert-subsector":
 	// 	runner = cronjob.NewUpsertSubsector()
 	// case "cronjob-upsert-emitten-profile-info":
@@ -89,6 +97,6 @@ func main() {
 	}
 
 	if err = RunApp(runner); err != nil {
-		panic(fmt.Sprintf("cannot run app %s", serverType))
+		panic(fmt.Sprintf("cannot run app %s: %v", serverType, err))
 	}
 }

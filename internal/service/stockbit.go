@@ -11,4 +11,16 @@ type Stockbit interface {
 	GetRunningTrade(ctx context.Context, symbol, summaryDate string, tradeNumber *string) (*RunningTrade, error)
 	GetSubsectors(ctx context.Context, sectorID string) ([]Sector, error)
 	GetEmittenInfo(ctx context.Context, symbol string) (*EmittenInfo, error)
+
+	GetDividends(ctx context.Context, symbol string) (*[]Dividend, error)
+	GetRUPS(ctx context.Context, symbol string) (*[]RUPS, error)
+	GetPublicExpose(ctx context.Context, symbol string) (*[]PublicExpose, error)
+	GetRightIssue(ctx context.Context, symbol string) (*[]RightIssue, error)
+	GetStockSplit(ctx context.Context, symbol string) (*[]Split, error)
+	GetReverseSplit(ctx context.Context, symbol string) (*[]Split, error)
+	// GetCorporateActions(ctx context.Context, symbol string) (*Corpaction, error)
+
+	GetSubsidiaryCompanies(ctx context.Context, symbol string) (*SubsidiaryData, error)
+
+	GetShareholders(ctx context.Context, symbol string, timeframe *Timeframe) (*ShareholderChartData, error)
 }

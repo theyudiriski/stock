@@ -22,3 +22,7 @@ proxy:
   port: 8800
   username: my-username
   password: my-password
+
+logger:
+  level: info
+  format: text  # text or json
