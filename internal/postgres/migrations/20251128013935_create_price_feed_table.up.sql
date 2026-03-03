@@ -15,6 +15,4 @@ CREATE TABLE IF NOT EXISTS price_feeds (
     PRIMARY KEY (symbol, date)
 );
 
-ALTER TABLE price_feeds ALTER COLUMN close DROP NOT NULL;
-
 COMMIT;

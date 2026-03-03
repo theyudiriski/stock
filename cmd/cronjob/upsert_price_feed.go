@@ -4,19 +4,24 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"log/slog"
 	"stock/config"
 	"stock/internal/httpclient"
+	"stock/internal/logger"
 	"stock/internal/postgres"
 	"stock/internal/service"
 	"stock/internal/stockbit"
-	"strings"
 	"sync"
+	"time"
 )
 
 func NewUpsertPriceFeed(fromDate, toDate, symbols string) *upsertPriceFeed {
 	ctx, cancel := context.WithCancel(context.Background())
 
-	stockbit := stockbit.NewStockbit(httpclient.New())
+	logger.Init()
+	log := logger.Default
+
+	stockbit := stockbit.NewStockbit(log, httpclient.New())
 
 	db, err := postgres.NewClient(config.LoadDatabase(), false)
 	if err != nil {
@@ -26,6 +31,7 @@ func NewUpsertPriceFeed(fromDate, toDate, symbols string) *upsertPriceFeed {
 	priceFeedStore := postgres.NewPriceFeedStore(db)
 
 	return &upsertPriceFeed{
+		logger:         log,
 		stockbit:       stockbit,
 		emittenStore:   emittenStore,
 		priceFeedStore: priceFeedStore,
@@ -34,11 +40,12 @@ func NewUpsertPriceFeed(fromDate, toDate, symbols string) *upsertPriceFeed {
 
 		fromDate: fromDate,
 		toDate:   toDate,
-		symbols:  strings.Split(symbols, ","),
+		symbols:  parseSymbols(symbols),
 	}
 }
 
 type upsertPriceFeed struct {
+	logger         *slog.Logger
 	stockbit       service.Stockbit
 	emittenStore   service.EmittenStore
 	priceFeedStore service.PriceFeedStore
@@ -51,12 +58,14 @@ type upsertPriceFeed struct {
 }
 
 func (u *upsertPriceFeed) Run() (err error) {
+	start := time.Now()
 	ctx := u.ctx
 
 	emittens := u.symbols
 	if len(emittens) < 1 {
 		emittens, err = u.emittenStore.GetEmittens(ctx)
 		if err != nil {
+			u.logger.Error("failed to get emittens", "error", err)
 			return err
 		}
 	}
@@ -85,6 +94,8 @@ func (u *upsertPriceFeed) Run() (err error) {
 				errs <- fmt.Errorf("failed to upsert price feed %s: %w", emitten, err)
 				return
 			}
+
+			u.logger.Info("successfully upserted price feed", "symbol", emitten)
 		}(emittens[i])
 	}
 
@@ -95,9 +106,11 @@ func (u *upsertPriceFeed) Run() (err error) {
 		return fmt.Errorf("failed to upsert price feed: %w", errors.Join(<-errs))
 	}
 
+	u.logger.Info("successfully upserted price feed", "duration", time.Since(start), "fromDate", u.fromDate, "toDate", u.toDate)
 	return nil
 }
 
 func (u *upsertPriceFeed) Stop() error {
+	u.cancel()
 	return nil
 }
