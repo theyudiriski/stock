@@ -4,7 +4,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"log/slog"
 	"stock/config"
 	"stock/internal/httpclient"
 	"stock/internal/logger"
@@ -31,43 +30,40 @@ func NewUpsertPriceFeed(fromDate, toDate, symbols string) *upsertPriceFeed {
 	priceFeedStore := postgres.NewPriceFeedStore(db)
 
 	return &upsertPriceFeed{
-		logger:         log,
+		base: base{
+			logger:       log,
+			emittenStore: emittenStore,
+			symbols:      parseSymbols(symbols),
+		},
 		stockbit:       stockbit,
-		emittenStore:   emittenStore,
 		priceFeedStore: priceFeedStore,
 		ctx:            ctx,
 		cancel:         cancel,
 
 		fromDate: fromDate,
 		toDate:   toDate,
-		symbols:  parseSymbols(symbols),
 	}
 }
 
 type upsertPriceFeed struct {
-	logger         *slog.Logger
+	base
 	stockbit       service.Stockbit
-	emittenStore   service.EmittenStore
 	priceFeedStore service.PriceFeedStore
-	ctx            context.Context
-	cancel         context.CancelFunc
+
+	ctx    context.Context
+	cancel context.CancelFunc
 
 	fromDate string
 	toDate   string
-	symbols  []string
 }
 
 func (u *upsertPriceFeed) Run() (err error) {
 	start := time.Now()
 	ctx := u.ctx
 
-	emittens := u.symbols
-	if len(emittens) < 1 {
-		emittens, err = u.emittenStore.GetEmittens(ctx)
-		if err != nil {
-			u.logger.Error("failed to get emittens", "error", err)
-			return err
-		}
+	emittens, err := u.getEmittens(ctx)
+	if err != nil {
+		return err
 	}
 
 	var wg sync.WaitGroup

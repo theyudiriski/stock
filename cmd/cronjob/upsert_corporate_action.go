@@ -4,7 +4,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"log/slog"
 	"stock/config"
 	"stock/internal/httpclient"
 	"stock/internal/logger"
@@ -31,40 +30,33 @@ func NewUpsertCorporateAction(symbols string) *upsertCorporateAction {
 	corpactionStore := postgres.NewCorpactionStore(db)
 
 	return &upsertCorporateAction{
-		logger:          log,
+		base: base{
+			logger:       log,
+			emittenStore: emittenStore,
+			symbols:      parseSymbols(symbols),
+		},
 		stockbit:        stockbit,
-		emittenStore:    emittenStore,
 		corpactionStore: corpactionStore,
 		ctx:             ctx,
 		cancel:          cancel,
-
-		symbols: parseSymbols(symbols),
 	}
 }
 
 type upsertCorporateAction struct {
-	logger *slog.Logger
-
+	base
 	stockbit        service.Stockbit
-	emittenStore    service.EmittenStore
 	corpactionStore service.CorpactionStore
 
 	ctx    context.Context
 	cancel context.CancelFunc
-
-	symbols []string
 }
 
 func (u *upsertCorporateAction) Run() (err error) {
 	ctx := u.ctx
 
-	emittens := u.symbols
-	if len(emittens) < 1 {
-		emittens, err = u.emittenStore.GetEmittens(ctx)
-		if err != nil {
-			u.logger.Error("failed to get emittens", "error", err)
-			return err
-		}
+	emittens, err := u.getEmittens(ctx)
+	if err != nil {
+		return err
 	}
 
 	var wg sync.WaitGroup

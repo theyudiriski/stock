@@ -4,7 +4,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"log/slog"
 	"stock/config"
 	"stock/internal/httpclient"
 	"stock/internal/logger"
@@ -31,23 +30,23 @@ func NewUpsertBrokerSummary(fromDate, toDate, symbols string) *upsertBrokerSumma
 	stockbit := stockbit.NewStockbit(log, httpclient.New(service.ServiceNameStockbit))
 
 	return &upsertBrokerSummary{
-		logger:             log,
 		stockbit:           stockbit,
-		emittenStore:       emittenStore,
 		brokerSummaryStore: brokerSummaryStore,
-		ctx:                ctx,
-		cancel:             cancel,
-
+		base: base{
+			logger:       log,
+			emittenStore: emittenStore,
+			symbols:      parseSymbols(symbols),
+		},
+		ctx:      ctx,
+		cancel:   cancel,
 		fromDate: fromDate,
 		toDate:   toDate,
-		symbols:  parseSymbols(symbols),
 	}
 }
 
 type upsertBrokerSummary struct {
-	logger             *slog.Logger
+	base
 	stockbit           service.Stockbit
-	emittenStore       service.EmittenStore
 	brokerSummaryStore service.BrokerSummaryStore
 
 	ctx    context.Context
@@ -55,7 +54,6 @@ type upsertBrokerSummary struct {
 
 	fromDate string
 	toDate   string
-	symbols  []string
 }
 
 type brokerSummary struct {
@@ -67,13 +65,9 @@ func (u *upsertBrokerSummary) Run() (err error) {
 	start := time.Now()
 	ctx := u.ctx
 
-	emittens := u.symbols
-	if len(emittens) < 1 {
-		emittens, err = u.emittenStore.GetEmittens(ctx)
-		if err != nil {
-			u.logger.Error("failed to get emittens", "error", err)
-			return err
-		}
+	emittens, err := u.getEmittens(ctx)
+	if err != nil {
+		return err
 	}
 
 	from, err := time.Parse(time.DateOnly, u.fromDate)

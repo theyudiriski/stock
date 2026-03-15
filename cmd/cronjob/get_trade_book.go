@@ -4,7 +4,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"log/slog"
 	"stock/config"
 	"stock/internal/httpclient"
 	"stock/internal/logger"
@@ -28,36 +27,32 @@ func NewGetTradeBook(symbols string) *getTradeBook {
 	stockbit := stockbit.NewStockbit(log, httpclient.New(service.ServiceNameStockbit))
 
 	return &getTradeBook{
-		logger:       log,
-		stockbit:     stockbit,
-		emittenStore: emittenStore,
-		ctx:          ctx,
-		cancel:       cancel,
-		symbols:      parseSymbols(symbols),
+		base: base{
+			logger:       log,
+			emittenStore: emittenStore,
+			symbols:      parseSymbols(symbols),
+		},
+		stockbit: stockbit,
+
+		ctx:    ctx,
+		cancel: cancel,
 	}
 }
 
 type getTradeBook struct {
-	logger   *slog.Logger
+	base
 	stockbit service.Stockbit
 
-	emittenStore service.EmittenStore
-
-	ctx     context.Context
-	cancel  context.CancelFunc
-	symbols []string
+	ctx    context.Context
+	cancel context.CancelFunc
 }
 
-func (u *getTradeBook) Run() (err error) {
+func (u *getTradeBook) Run() error {
 	ctx := u.ctx
 
-	emittens := u.symbols
-	if len(emittens) < 1 {
-		emittens, err = u.emittenStore.GetEmittens(ctx)
-		if err != nil {
-			u.logger.Error("failed to get emittens", "error", err)
-			return err
-		}
+	emittens, err := u.getEmittens(ctx)
+	if err != nil {
+		return err
 	}
 
 	var wg sync.WaitGroup
