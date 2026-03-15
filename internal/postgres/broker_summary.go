@@ -33,7 +33,7 @@ func (s *brokerSummaryStore) UpsertBrokerSummary(
 	defer tx.Rollback()
 
 	for i := range summary.Data.BrokerSummary.BrokersBuy {
-		// Convert string values to int64 for total_lot and total_value
+		// Convert string values to int64 for total_lot and total_transaction_value
 		totalLotDecimal, err := decimal.NewFromString(summary.Data.BrokerSummary.BrokersBuy[i].Blot)
 		if err != nil {
 			return fmt.Errorf("failed to parse total_lot for buy: %w", err)
@@ -41,7 +41,7 @@ func (s *brokerSummaryStore) UpsertBrokerSummary(
 
 		totalValueDecimal, err := decimal.NewFromString(summary.Data.BrokerSummary.BrokersBuy[i].Bval)
 		if err != nil {
-			return fmt.Errorf("failed to parse total_value for buy: %w", err)
+			return fmt.Errorf("failed to parse total_transaction_value for buy: %w", err)
 		}
 
 		_, err = tx.ExecContext(ctx, `
@@ -53,7 +53,7 @@ func (s *brokerSummaryStore) UpsertBrokerSummary(
 				market_board,
 				summary_date,
 				total_lot,
-				total_value,
+				total_transaction_value,
 				price_average
 			) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
 			ON CONFLICT (symbol, broker, action, investor_type, market_board, summary_date)
@@ -75,7 +75,7 @@ func (s *brokerSummaryStore) UpsertBrokerSummary(
 	}
 
 	for i := range summary.Data.BrokerSummary.BrokersSell {
-		// Convert string values to int64 for total_lot and total_value
+		// Convert string values to int64 for total_lot and total_transaction_value
 		totalLotDecimal, err := decimal.NewFromString(summary.Data.BrokerSummary.BrokersSell[i].Slot)
 		if err != nil {
 			return fmt.Errorf("failed to parse total_lot for sell: %w", err)
@@ -83,7 +83,7 @@ func (s *brokerSummaryStore) UpsertBrokerSummary(
 
 		totalValueDecimal, err := decimal.NewFromString(summary.Data.BrokerSummary.BrokersSell[i].Sval)
 		if err != nil {
-			return fmt.Errorf("failed to parse total_value for sell: %w", err)
+			return fmt.Errorf("failed to parse total_transaction_value for sell: %w", err)
 		}
 
 		_, err = tx.ExecContext(ctx, `
@@ -95,7 +95,7 @@ func (s *brokerSummaryStore) UpsertBrokerSummary(
 				market_board,
 				summary_date,
 				total_lot,
-				total_value,
+				total_transaction_value,
 				price_average
 			) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
 			ON CONFLICT (symbol, broker, action, investor_type, market_board, summary_date)

@@ -8,7 +8,7 @@ CREATE TABLE IF NOT EXISTS broker_summaries (
     market_board VARCHAR(2) NOT NULL,
     summary_date DATE NOT NULL,
     total_lot BIGINT NOT NULL,
-    total_value BIGINT NOT NULL,
+    total_transaction_value BIGINT NOT NULL,
     price_average NUMERIC(20, 2) NOT NULL,
     PRIMARY KEY (symbol, broker, action, investor_type, market_board, summary_date)
 ) PARTITION BY RANGE (summary_date);
