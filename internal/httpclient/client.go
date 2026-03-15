@@ -5,11 +5,12 @@ import (
 	"net/http"
 	"net/url"
 	"stock/config"
+	"stock/internal/service"
 )
 
-func New() *http.Client {
+func New(serviceName service.ServiceName) *http.Client {
 	cfg := config.LoadProxy()
-	if !cfg.Enabled {
+	if !cfg.IsEnabled(serviceName) {
 		return &http.Client{}
 	}
 

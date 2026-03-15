@@ -20,7 +20,7 @@ func NewUpsertEmittenCompanySubsidiary(symbols string) *upsertEmittenCompanySubs
 	logger.Init()
 	log := logger.Default
 
-	stockbit := stockbit.NewStockbit(log, httpclient.New())
+	stockbit := stockbit.NewStockbit(log, httpclient.New(service.ServiceNameStockbit))
 
 	db, err := postgres.NewClient(config.LoadDatabase(), false)
 	if err != nil {

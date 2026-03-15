@@ -28,7 +28,7 @@ func NewUpsertBrokerSummary(fromDate, toDate, symbols string) *upsertBrokerSumma
 	emittenStore := postgres.NewEmittenStore(db)
 	brokerSummaryStore := postgres.NewBrokerSummaryStore(db)
 
-	stockbit := stockbit.NewStockbit(log, httpclient.New())
+	stockbit := stockbit.NewStockbit(log, httpclient.New(service.ServiceNameStockbit))
 
 	return &upsertBrokerSummary{
 		logger:             log,

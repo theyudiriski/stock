@@ -16,7 +16,8 @@ database:
   ssl_mode: disable
 
 proxy:
-  enabled: true
+  enabled:
+    stockbit: false
   scheme: https
   host: gw.dataimpulse.com
   port: 8800

@@ -9,6 +9,7 @@ import (
 	"stock/internal/httpclient"
 	"stock/internal/logger"
 	"stock/internal/postgres"
+	"stock/internal/service"
 	. "stock/internal/service"
 	"stock/internal/stockbit"
 	"sync"
@@ -20,7 +21,7 @@ func NewUpsertShareholderChart(symbols string) *upsertShareholderChart {
 	logger.Init()
 	log := logger.Default
 
-	stockbit := stockbit.NewStockbit(log, httpclient.New())
+	stockbit := stockbit.NewStockbit(log, httpclient.New(service.ServiceNameStockbit))
 
 	db, err := postgres.NewClient(config.LoadDatabase(), false)
 	if err != nil {
