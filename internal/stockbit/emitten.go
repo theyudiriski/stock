@@ -24,7 +24,8 @@ func (s *stockbit) GetEmittenProfile(ctx context.Context, symbol string) (*servi
 	}
 
 	uniqueHash := fmt.Sprintf("%s-%d", symbol, time.Now().UnixMilli())
-	r.Header.Set("Authorization", "Bearer "+s.getToken(uniqueHash))
+	token, username := s.getToken(uniqueHash)
+	r.Header.Set("Authorization", "Bearer "+token)
 
 	response, err := s.client.Do(r)
 	if err != nil {
@@ -33,7 +34,7 @@ func (s *stockbit) GetEmittenProfile(ctx context.Context, symbol string) (*servi
 	defer response.Body.Close()
 
 	if response.StatusCode != http.StatusOK {
-		return nil, fmt.Errorf("failed to get emitten profile: %d", response.StatusCode)
+		return nil, s.handleError(response, username)
 	}
 
 	body, err := io.ReadAll(response.Body)
@@ -70,7 +71,8 @@ func (s *stockbit) GetEmittenInfo(ctx context.Context, symbol string) (*service.
 		return nil, err
 	}
 
-	r.Header.Set("Authorization", "Bearer "+s.getToken(symbol))
+	token, username := s.getToken(symbol)
+	r.Header.Set("Authorization", "Bearer "+token)
 
 	response, err := s.client.Do(r)
 	if err != nil {
@@ -79,7 +81,7 @@ func (s *stockbit) GetEmittenInfo(ctx context.Context, symbol string) (*service.
 	defer response.Body.Close()
 
 	if response.StatusCode != http.StatusOK {
-		return nil, fmt.Errorf("failed to get emitten info: %d", response.StatusCode)
+		return nil, s.handleError(response, username)
 	}
 
 	body, err := io.ReadAll(response.Body)

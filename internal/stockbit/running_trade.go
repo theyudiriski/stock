@@ -54,7 +54,8 @@ func (s *stockbit) GetRunningTrade(
 		uniqueHash += fmt.Sprintf("-%s", *tradeNumber)
 	}
 
-	r.Header.Set("Authorization", "Bearer "+s.getToken(uniqueHash))
+	token, username := s.getToken(uniqueHash)
+	r.Header.Set("Authorization", "Bearer "+token)
 
 	response, err := s.client.Do(r)
 	if err != nil {
@@ -63,7 +64,7 @@ func (s *stockbit) GetRunningTrade(
 	defer response.Body.Close()
 
 	if response.StatusCode != http.StatusOK {
-		return nil, fmt.Errorf("failed to get broker summary: %d", response.StatusCode)
+		return nil, s.handleError(response, username)
 	}
 
 	body, err := io.ReadAll(response.Body)

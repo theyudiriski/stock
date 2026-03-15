@@ -3,7 +3,6 @@ package stockbit
 import (
 	"context"
 	"encoding/json"
-	"fmt"
 	"io"
 	"net/http"
 	"net/url"
@@ -29,7 +28,8 @@ func (s *stockbit) GetSubsectors(
 		return nil, err
 	}
 
-	r.Header.Set("Authorization", "Bearer "+s.getToken(sectorID))
+	token, username := s.getToken(sectorID)
+	r.Header.Set("Authorization", "Bearer "+token)
 
 	response, err := s.client.Do(r)
 	if err != nil {
@@ -38,7 +38,7 @@ func (s *stockbit) GetSubsectors(
 	defer response.Body.Close()
 
 	if response.StatusCode != http.StatusOK {
-		return nil, fmt.Errorf("failed to get subsectors: %d", response.StatusCode)
+		return nil, s.handleError(response, username)
 	}
 
 	body, err := io.ReadAll(response.Body)

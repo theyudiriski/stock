@@ -32,7 +32,8 @@ func (s *stockbit) GetDividends(ctx context.Context, symbol string) (*[]service.
 	}
 
 	uniqueHash := fmt.Sprintf("%s-%d", symbol, time.Now().UnixMilli())
-	r.Header.Set("Authorization", "Bearer "+s.getToken(uniqueHash))
+	token, username := s.getToken(uniqueHash)
+	r.Header.Set("Authorization", "Bearer "+token)
 
 	response, err := s.client.Do(r)
 	if err != nil {
@@ -41,7 +42,7 @@ func (s *stockbit) GetDividends(ctx context.Context, symbol string) (*[]service.
 	defer response.Body.Close()
 
 	if response.StatusCode != http.StatusOK {
-		return nil, fmt.Errorf("failed to get dividends: %d", response.StatusCode)
+		return nil, s.handleError(response, username)
 	}
 
 	body, err := io.ReadAll(response.Body)
@@ -79,7 +80,8 @@ func (s *stockbit) GetRUPS(ctx context.Context, symbol string) (*[]service.RUPS,
 	}
 
 	uniqueHash := fmt.Sprintf("%s-%d", symbol, time.Now().UnixMilli())
-	r.Header.Set("Authorization", "Bearer "+s.getToken(uniqueHash))
+	token, username := s.getToken(uniqueHash)
+	r.Header.Set("Authorization", "Bearer "+token)
 
 	response, err := s.client.Do(r)
 	if err != nil {
@@ -88,7 +90,7 @@ func (s *stockbit) GetRUPS(ctx context.Context, symbol string) (*[]service.RUPS,
 	defer response.Body.Close()
 
 	if response.StatusCode != http.StatusOK {
-		return nil, fmt.Errorf("failed to get rups: %d", response.StatusCode)
+		return nil, s.handleError(response, username)
 	}
 
 	body, err := io.ReadAll(response.Body)
@@ -126,7 +128,8 @@ func (s *stockbit) GetPublicExpose(ctx context.Context, symbol string) (*[]servi
 	}
 
 	uniqueHash := fmt.Sprintf("%s-%d", symbol, time.Now().UnixMilli())
-	r.Header.Set("Authorization", "Bearer "+s.getToken(uniqueHash))
+	token, username := s.getToken(uniqueHash)
+	r.Header.Set("Authorization", "Bearer "+token)
 
 	response, err := s.client.Do(r)
 	if err != nil {
@@ -135,7 +138,7 @@ func (s *stockbit) GetPublicExpose(ctx context.Context, symbol string) (*[]servi
 	defer response.Body.Close()
 
 	if response.StatusCode != http.StatusOK {
-		return nil, fmt.Errorf("failed to get public expose: %d", response.StatusCode)
+		return nil, s.handleError(response, username)
 	}
 
 	body, err := io.ReadAll(response.Body)
@@ -173,7 +176,8 @@ func (s *stockbit) GetRightIssue(ctx context.Context, symbol string) (*[]service
 	}
 
 	uniqueHash := fmt.Sprintf("%s-%d", symbol, time.Now().UnixMilli())
-	r.Header.Set("Authorization", "Bearer "+s.getToken(uniqueHash))
+	token, username := s.getToken(uniqueHash)
+	r.Header.Set("Authorization", "Bearer "+token)
 
 	response, err := s.client.Do(r)
 	if err != nil {
@@ -182,7 +186,7 @@ func (s *stockbit) GetRightIssue(ctx context.Context, symbol string) (*[]service
 	defer response.Body.Close()
 
 	if response.StatusCode != http.StatusOK {
-		return nil, fmt.Errorf("failed to get right issue: %d", response.StatusCode)
+		return nil, s.handleError(response, username)
 	}
 
 	body, err := io.ReadAll(response.Body)
@@ -220,7 +224,8 @@ func (s *stockbit) GetStockSplit(ctx context.Context, symbol string) (*[]service
 	}
 
 	uniqueHash := fmt.Sprintf("%s-%d", symbol, time.Now().UnixMilli())
-	r.Header.Set("Authorization", "Bearer "+s.getToken(uniqueHash))
+	token, username := s.getToken(uniqueHash)
+	r.Header.Set("Authorization", "Bearer "+token)
 
 	response, err := s.client.Do(r)
 	if err != nil {
@@ -229,7 +234,7 @@ func (s *stockbit) GetStockSplit(ctx context.Context, symbol string) (*[]service
 	defer response.Body.Close()
 
 	if response.StatusCode != http.StatusOK {
-		return nil, fmt.Errorf("failed to get stock split: %d", response.StatusCode)
+		return nil, s.handleError(response, username)
 	}
 
 	body, err := io.ReadAll(response.Body)
@@ -266,7 +271,8 @@ func (s *stockbit) GetReverseSplit(ctx context.Context, symbol string) (*[]servi
 	}
 
 	uniqueHash := fmt.Sprintf("%s-%d", symbol, time.Now().UnixMilli())
-	r.Header.Set("Authorization", "Bearer "+s.getToken(uniqueHash))
+	token, username := s.getToken(uniqueHash)
+	r.Header.Set("Authorization", "Bearer "+token)
 
 	response, err := s.client.Do(r)
 	if err != nil {
@@ -275,7 +281,7 @@ func (s *stockbit) GetReverseSplit(ctx context.Context, symbol string) (*[]servi
 	defer response.Body.Close()
 
 	if response.StatusCode != http.StatusOK {
-		return nil, fmt.Errorf("failed to get reverse split: %d", response.StatusCode)
+		return nil, s.handleError(response, username)
 	}
 
 	body, err := io.ReadAll(response.Body)
@@ -313,7 +319,8 @@ func (s *stockbit) GetCorporateActions(ctx context.Context, symbol string) (*ser
 	}
 
 	uniqueHash := fmt.Sprintf("%s-%d", symbol, time.Now().UnixMilli())
-	r.Header.Set("Authorization", "Bearer "+s.getToken(uniqueHash))
+	token, username := s.getToken(uniqueHash)
+	r.Header.Set("Authorization", "Bearer "+token)
 
 	response, err := s.client.Do(r)
 	if err != nil {
@@ -322,7 +329,7 @@ func (s *stockbit) GetCorporateActions(ctx context.Context, symbol string) (*ser
 	defer response.Body.Close()
 
 	if response.StatusCode != http.StatusOK {
-		return nil, fmt.Errorf("failed to get corporate actions: %d", response.StatusCode)
+		return nil, s.handleError(response, username)
 	}
 
 	body, err := io.ReadAll(response.Body)

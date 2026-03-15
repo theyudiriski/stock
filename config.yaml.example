@@ -1,7 +1,9 @@
 stockbit:
   base_url: https://exodus.stockbit.com
   tokens:
-    - something-big-is-coming
+    theyudiriski: eyJhbGciOiJSUzI1NiIsImtpZCI6IjU3MDc0NjI3LTg4MWItNDQzZC04OTcyLTdmMmMzOTNlMzYyOSIsInR5cCI6IkpXVCJ9
+  webview_tokens:
+    - 892241cc3a06ea71a8f98a362a3797b0066875eda9292f79d4325579c3eea785
 
 database:
   host: localhost

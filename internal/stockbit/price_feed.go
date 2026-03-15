@@ -46,8 +46,8 @@ func (s *stockbit) GetPriceFeed(
 		}
 
 		uniqueHash := fmt.Sprintf("%s-%s-%s-%s", symbol, fromDate, toDate, page)
-
-		r.Header.Set("Authorization", "Bearer "+s.getToken(uniqueHash))
+		token, username := s.getToken(uniqueHash)
+		r.Header.Set("Authorization", "Bearer "+token)
 
 		response, err := s.client.Do(r)
 		if err != nil {
@@ -56,7 +56,7 @@ func (s *stockbit) GetPriceFeed(
 
 		if response.StatusCode != http.StatusOK {
 			response.Body.Close()
-			return nil, fmt.Errorf("failed to get price feed: %d", response.StatusCode)
+			return nil, s.handleError(response, username)
 		}
 
 		body, err := io.ReadAll(response.Body)

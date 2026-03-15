@@ -42,6 +42,14 @@ func GetStringSlice(key string) []string {
 	return value
 }
 
+func GetStringMapString(key string) map[string]string {
+	result := v.GetStringMapString(key)
+	if len(result) == 0 {
+		panic(fmt.Errorf("%s is a required config and must have at least one entry", key))
+	}
+	return result
+}
+
 func GetDuration(key string) time.Duration {
 	value := v.GetDuration(key)
 	if value == 0 {

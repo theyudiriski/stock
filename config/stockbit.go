@@ -2,14 +2,14 @@ package config
 
 type Stockbit struct {
 	BaseURL       string
-	Tokens        []string
+	Tokens        map[string]string
 	WebviewTokens []string
 }
 
 func LoadStockbit() Stockbit {
 	return Stockbit{
 		BaseURL:       GetString("stockbit.base_url"),
-		Tokens:        GetStringSlice("stockbit.tokens"),
+		Tokens:        GetStringMapString("stockbit.tokens"),
 		WebviewTokens: GetStringSlice("stockbit.webview_tokens"),
 	}
 }

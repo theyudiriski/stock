@@ -28,7 +28,8 @@ func (s *stockbit) GetSubsidiaryCompanies(ctx context.Context, symbol string) (*
 	}
 
 	uniqueHash := fmt.Sprintf("%s-%d", symbol, time.Now().UnixMilli())
-	r.Header.Set("Authorization", "Bearer "+s.getToken(uniqueHash))
+	token, username := s.getToken(uniqueHash)
+	r.Header.Set("Authorization", "Bearer "+token)
 
 	response, err := s.client.Do(r)
 	if err != nil {
@@ -37,7 +38,7 @@ func (s *stockbit) GetSubsidiaryCompanies(ctx context.Context, symbol string) (*
 	defer response.Body.Close()
 
 	if response.StatusCode != http.StatusOK {
-		return nil, fmt.Errorf("failed to get subsidiary companies: %d", response.StatusCode)
+		return nil, s.handleError(response, username)
 	}
 
 	body, err := io.ReadAll(response.Body)
