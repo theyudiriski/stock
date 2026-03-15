@@ -23,4 +23,5 @@ type Stockbit interface {
 	GetSubsidiaryCompanies(ctx context.Context, symbol string) (*SubsidiaryData, error)
 
 	GetShareholders(ctx context.Context, symbol string, timeframe *Timeframe) (*ShareholderChartData, error)
+	GetTradeBook(ctx context.Context, symbol string) (*TradeBook, error)
 }

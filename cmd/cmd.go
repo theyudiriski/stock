@@ -86,6 +86,8 @@ func main() {
 		runner = cronjob.NewUpsertEmittenCompanySubsidiary(symbols)
 	case "cronjob-upsert-shareholder-chart":
 		runner = cronjob.NewUpsertShareholderChart(symbols)
+	case "cronjob-get-trade-book":
+		runner = cronjob.NewGetTradeBook(symbols)
 	// case "cronjob-upsert-subsector":
 	// 	runner = cronjob.NewUpsertSubsector()
 	// case "cronjob-upsert-emitten-profile-info":
