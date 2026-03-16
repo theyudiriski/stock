@@ -22,6 +22,7 @@ func main() {
 		configPath string
 		fromDate   string
 		toDate     string
+		date       string
 		symbols    string
 	)
 	flag.StringVar(
@@ -54,6 +55,12 @@ func main() {
 		"",
 		"symbols",
 	)
+	flag.StringVar(
+		&date,
+		"date",
+		currentDate,
+		"date",
+	)
 	flag.Parse()
 
 	// Initialize config
@@ -83,6 +90,8 @@ func main() {
 		runner = cronjob.NewUpsertBrokerSummary(fromDate, toDate, symbols)
 	case "cronjob-upsert-price-feed":
 		runner = cronjob.NewUpsertPriceFeed(fromDate, toDate, symbols)
+	case "cronjob-upsert-price-intraday":
+		runner = cronjob.NewUpsertPriceIntraday(date, symbols)
 	case "cronjob-upsert-corporate-action":
 		runner = cronjob.NewUpsertCorporateAction(symbols)
 	case "cronjob-upsert-emitten-company-subsidiary":

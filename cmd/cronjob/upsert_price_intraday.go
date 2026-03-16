@@ -14,7 +14,7 @@ import (
 	"time"
 )
 
-func NewUpsertPriceFeed(fromDate, toDate, symbols string) *upsertPriceFeed {
+func NewUpsertPriceIntraday(date, symbols string) *upsertPriceIntraday {
 	ctx, cancel := context.WithCancel(context.Background())
 
 	logger.Init()
@@ -29,7 +29,7 @@ func NewUpsertPriceFeed(fromDate, toDate, symbols string) *upsertPriceFeed {
 	emittenStore := postgres.NewEmittenStore(db)
 	priceFeedStore := postgres.NewPriceFeedStore(db)
 
-	return &upsertPriceFeed{
+	return &upsertPriceIntraday{
 		base: base{
 			logger:       log,
 			emittenStore: emittenStore,
@@ -40,12 +40,11 @@ func NewUpsertPriceFeed(fromDate, toDate, symbols string) *upsertPriceFeed {
 		ctx:            ctx,
 		cancel:         cancel,
 
-		fromDate: fromDate,
-		toDate:   toDate,
+		date: date,
 	}
 }
 
-type upsertPriceFeed struct {
+type upsertPriceIntraday struct {
 	base
 	stockbit       service.Stockbit
 	priceFeedStore service.PriceFeedStore
@@ -53,11 +52,10 @@ type upsertPriceFeed struct {
 	ctx    context.Context
 	cancel context.CancelFunc
 
-	fromDate string
-	toDate   string
+	date string
 }
 
-func (u *upsertPriceFeed) Run() (err error) {
+func (u *upsertPriceIntraday) Run() (err error) {
 	start := time.Now()
 	ctx := u.ctx
 
@@ -79,19 +77,19 @@ func (u *upsertPriceFeed) Run() (err error) {
 			defer wg.Done()
 			defer func() { <-sem }()
 
-			results, err := u.stockbit.GetPriceFeed(ctx, emitten, u.fromDate, u.toDate)
+			results, err := u.stockbit.GetPriceIntraday(ctx, emitten, u.date)
 			if err != nil {
-				errs <- fmt.Errorf("failed to get price feed %s: %w", emitten, err)
+				errs <- fmt.Errorf("failed to get price intraday %s: %w", emitten, err)
 				return
 			}
 
-			err = u.priceFeedStore.UpsertPriceFeed(ctx, emitten, results)
+			err = u.priceFeedStore.UpsertPriceIntraday(ctx, emitten, results)
 			if err != nil {
-				errs <- fmt.Errorf("failed to upsert price feed %s: %w", emitten, err)
+				errs <- fmt.Errorf("failed to upsert price intraday %s: %w", emitten, err)
 				return
 			}
 
-			u.logger.Info("successfully upserted price feed", "symbol", emitten, "fromDate", u.fromDate, "toDate", u.toDate)
+			u.logger.Info("successfully upserted price intraday", "symbol", emitten, "date", u.date)
 		}(emittens[i])
 	}
 
@@ -102,11 +100,11 @@ func (u *upsertPriceFeed) Run() (err error) {
 		return fmt.Errorf("failed to upsert price feed: %w", errors.Join(<-errs))
 	}
 
-	u.logger.Info("successfully upserted price feed", "duration", time.Since(start), "fromDate", u.fromDate, "toDate", u.toDate)
+	u.logger.Info("successfully upserted price intraday", "duration", time.Since(start), "date", u.date)
 	return nil
 }
 
-func (u *upsertPriceFeed) Stop() error {
+func (u *upsertPriceIntraday) Stop() error {
 	u.cancel()
 	return nil
 }

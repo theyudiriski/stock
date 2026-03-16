@@ -1,18 +1,15 @@
 BEGIN;
 
-CREATE TABLE IF NOT EXISTS price_feeds (
+CREATE TABLE IF NOT EXISTS price_intradays (
     symbol VARCHAR(4) NOT NULL,
-    date DATE NOT NULL,
+    unix_timestamp BIGINT NOT NULL,
     open INT NOT NULL,
     close INT NOT NULL,
     high INT NOT NULL,
     low INT NOT NULL,
-    average INT NOT NULL,
     transaction_value BIGINT NOT NULL,
     volume BIGINT NOT NULL,
-    frequency BIGINT NOT NULL,
-    net_foreign BIGINT NOT NULL,
-    PRIMARY KEY (symbol, date)
+    PRIMARY KEY (symbol, unix_timestamp)
 );
 
 COMMIT;
