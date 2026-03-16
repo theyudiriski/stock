@@ -4,6 +4,8 @@ go 1.24.7
 
 require (
 	github.com/avast/retry-go/v4 v4.7.0
+	github.com/go-chi/chi/v5 v5.2.5
+	github.com/go-telegram-bot-api/telegram-bot-api/v5 v5.5.1
 	github.com/golang-migrate/migrate/v4 v4.19.0
 	github.com/jackc/pgx/v5 v5.7.6
 	github.com/lib/pq v1.11.2
@@ -13,6 +15,7 @@ require (
 
 require (
 	github.com/fsnotify/fsnotify v1.9.0 // indirect
+	github.com/go-echarts/go-echarts/v2 v2.7.1 // indirect
 	github.com/go-viper/mapstructure/v2 v2.4.0 // indirect
 	github.com/hashicorp/errwrap v1.1.0 // indirect
 	github.com/hashicorp/go-multierror v1.1.1 // indirect

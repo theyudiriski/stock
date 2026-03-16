@@ -21,7 +21,7 @@ type priceFeedStore struct {
 func (s *priceFeedStore) UpsertPriceFeed(
 	ctx context.Context,
 	symbol string,
-	priceFeed *service.PriceFeed,
+	priceFeeds []service.PriceFeed,
 ) error {
 	tx, err := s.db.Leader.BeginTx(ctx, nil)
 	if err != nil {
@@ -51,19 +51,19 @@ func (s *priceFeedStore) UpsertPriceFeed(
 	}
 	defer stmt.Close()
 
-	for i := range priceFeed.Data.Result {
+	for i := range priceFeeds {
 		_, err = stmt.ExecContext(ctx,
 			symbol,
-			priceFeed.Data.Result[i].Date,
-			priceFeed.Data.Result[i].Open,
-			priceFeed.Data.Result[i].Close,
-			priceFeed.Data.Result[i].High,
-			priceFeed.Data.Result[i].Low,
-			priceFeed.Data.Result[i].Average,
-			priceFeed.Data.Result[i].Value,
-			priceFeed.Data.Result[i].Volume,
-			priceFeed.Data.Result[i].Frequency,
-			priceFeed.Data.Result[i].NetForeignBuy,
+			priceFeeds[i].Date,
+			priceFeeds[i].Open,
+			priceFeeds[i].Close,
+			priceFeeds[i].High,
+			priceFeeds[i].Low,
+			priceFeeds[i].Average,
+			priceFeeds[i].Value,
+			priceFeeds[i].Volume,
+			priceFeeds[i].Frequency,
+			priceFeeds[i].NetForeignBuy,
 		)
 		if err != nil {
 			return fmt.Errorf("failed to insert price feed: %w", err)

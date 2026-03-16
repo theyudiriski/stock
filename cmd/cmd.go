@@ -5,6 +5,7 @@ import (
 	"flag"
 	"fmt"
 	"stock/cmd/cronjob"
+	server "stock/cmd/server"
 	"stock/config"
 	"time"
 )
@@ -74,6 +75,8 @@ func main() {
 	// Choose runner based on type.
 	var runner Runner
 	switch serverType {
+	case "api":
+		runner = server.New()
 	case "cronjob-upsert-emitten-profile":
 		runner = cronjob.NewUpsertEmittenProfile(symbols)
 	case "cronjob-upsert-broker-summary":

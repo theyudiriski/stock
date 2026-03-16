@@ -79,13 +79,13 @@ func (u *upsertPriceFeed) Run() (err error) {
 			defer wg.Done()
 			defer func() { <-sem }()
 
-			priceFeed, err := u.stockbit.GetPriceFeed(ctx, emitten, u.fromDate, u.toDate)
+			results, err := u.stockbit.GetPriceFeed(ctx, emitten, u.fromDate, u.toDate)
 			if err != nil {
 				errs <- fmt.Errorf("failed to get price feed %s: %w", emitten, err)
 				return
 			}
 
-			err = u.priceFeedStore.UpsertPriceFeed(ctx, emitten, priceFeed)
+			err = u.priceFeedStore.UpsertPriceFeed(ctx, emitten, results)
 			if err != nil {
 				errs <- fmt.Errorf("failed to upsert price feed %s: %w", emitten, err)
 				return

@@ -15,7 +15,7 @@ func (s *stockbit) GetPriceFeed(
 	symbol string,
 	fromDate string,
 	toDate string,
-) (*service.PriceFeed, error) {
+) ([]service.PriceFeed, error) {
 	pricefeedURL, err := url.JoinPath(s.config.BaseURL, "/company-price-feed/historical/summary", symbol)
 	if err != nil {
 		return nil, err
@@ -27,7 +27,7 @@ func (s *stockbit) GetPriceFeed(
 	}
 
 	var (
-		results []service.PriceFeedResult
+		results []service.PriceFeed
 		page    = "1"
 	)
 
@@ -65,23 +65,19 @@ func (s *stockbit) GetPriceFeed(
 			return nil, err
 		}
 
-		var priceFeed service.PriceFeed
-		err = json.Unmarshal(body, &priceFeed)
+		var result service.PriceFeedResponse
+		err = json.Unmarshal(body, &result)
 		if err != nil {
 			return nil, err
 		}
 
-		if len(priceFeed.Data.Result) < 1 {
+		if len(result.Data.Result) < 1 {
 			break
 		}
 
-		results = append(results, priceFeed.Data.Result...)
-		page = priceFeed.Data.Paginate.NextPage
+		results = append(results, result.Data.Result...)
+		page = result.Data.Paginate.NextPage
 	}
 
-	return &service.PriceFeed{
-		Data: service.PriceFeedData{
-			Result: results,
-		},
-	}, nil
+	return results, nil
 }

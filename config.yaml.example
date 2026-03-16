@@ -1,9 +1,20 @@
+server:
+  addr: :8080
+  timeout:
+    read: 10s
+    write: 10s
+    idle: 2m
+
 stockbit:
   base_url: https://exodus.stockbit.com
   tokens:
-    theyudiriski: eyJhbGciOiJSUzI1NiIsImtpZCI6IjU3MDc0NjI3LTg4MWItNDQzZC04OTcyLTdmMmMzOTNlMzYyOSIsInR5cCI6IkpXVCJ9
+    theyudiriski: stockbit-token
   webview_tokens:
-    - 892241cc3a06ea71a8f98a362a3797b0066875eda9292f79d4325579c3eea785
+    - webview-token
+
+telegram:
+  bot:
+    token: telegram-bot-token
 
 database:
   host: localhost
@@ -23,8 +34,8 @@ proxy:
   scheme: https
   host: gw.dataimpulse.com
   port: 8800
-  username: my-username
-  password: my-password
+  username: username
+  password: password
 
 logger:
   level: info
