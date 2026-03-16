@@ -2,9 +2,11 @@ package config
 
 import (
 	"fmt"
+	"log"
 	"strings"
 	"time"
 
+	"github.com/fsnotify/fsnotify"
 	"github.com/spf13/viper"
 )
 
@@ -22,6 +24,11 @@ func Init(configPath string) error {
 	if err := v.ReadInConfig(); err != nil {
 		return fmt.Errorf("failed to read config file: %w", err)
 	}
+
+	v.WatchConfig()
+	v.OnConfigChange(func(e fsnotify.Event) {
+		log.Printf("config reloaded: %s", e.Name)
+	})
 
 	return nil
 }
