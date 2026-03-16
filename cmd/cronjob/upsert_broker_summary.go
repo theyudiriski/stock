@@ -132,10 +132,10 @@ func (u *upsertBrokerSummary) Run() (err error) {
 							return
 						}
 					}
+
+					u.logger.Info("successfully upserted broker summary", "symbol", emitten, "date", summaryDate)
 				}
 			}
-
-			u.logger.Info("successfully upserted broker summary", "symbol", emitten)
 		}(emittens[i])
 	}
 

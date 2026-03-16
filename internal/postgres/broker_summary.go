@@ -44,6 +44,11 @@ func (s *brokerSummaryStore) UpsertBrokerSummary(
 			return fmt.Errorf("failed to parse total_transaction_value for buy: %w", err)
 		}
 
+		frequencyDecimal, err := decimal.NewFromString(summary.Data.BrokerSummary.BrokersBuy[i].Frequency)
+		if err != nil {
+			return fmt.Errorf("failed to parse frequency for buy: %w", err)
+		}
+
 		_, err = tx.ExecContext(ctx, `
 			INSERT INTO broker_summaries (
 				symbol,
@@ -54,8 +59,9 @@ func (s *brokerSummaryStore) UpsertBrokerSummary(
 				summary_date,
 				total_lot,
 				total_transaction_value,
-				price_average
-			) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+				price_average,
+				frequency
+			) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
 			ON CONFLICT (symbol, broker, action, investor_type, market_board, summary_date)
 			DO NOTHING;
 		`,
@@ -68,6 +74,7 @@ func (s *brokerSummaryStore) UpsertBrokerSummary(
 			totalLotDecimal.IntPart(),
 			totalValueDecimal.IntPart(),
 			summary.Data.BrokerSummary.BrokersBuy[i].NetbsBuyAvgPrice,
+			frequencyDecimal.IntPart(),
 		)
 		if err != nil {
 			return fmt.Errorf("failed to insert broker summary: %w", err)
@@ -86,6 +93,11 @@ func (s *brokerSummaryStore) UpsertBrokerSummary(
 			return fmt.Errorf("failed to parse total_transaction_value for sell: %w", err)
 		}
 
+		frequencyDecimal, err := decimal.NewFromString(summary.Data.BrokerSummary.BrokersSell[i].Frequency)
+		if err != nil {
+			return fmt.Errorf("failed to parse frequency for sell: %w", err)
+		}
+
 		_, err = tx.ExecContext(ctx, `
 			INSERT INTO broker_summaries (
 				symbol,
@@ -96,8 +108,9 @@ func (s *brokerSummaryStore) UpsertBrokerSummary(
 				summary_date,
 				total_lot,
 				total_transaction_value,
-				price_average
-			) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+				price_average,
+				frequency
+			) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
 			ON CONFLICT (symbol, broker, action, investor_type, market_board, summary_date)
 			DO NOTHING;
 		`,
@@ -110,6 +123,7 @@ func (s *brokerSummaryStore) UpsertBrokerSummary(
 			totalLotDecimal.IntPart(),
 			totalValueDecimal.IntPart(),
 			summary.Data.BrokerSummary.BrokersSell[i].NetbsSellAvgPrice,
+			frequencyDecimal.IntPart(),
 		)
 		if err != nil {
 			return fmt.Errorf("failed to insert broker summary: %w", err)

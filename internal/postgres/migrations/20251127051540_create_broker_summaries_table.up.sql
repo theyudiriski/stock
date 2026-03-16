@@ -10,6 +10,7 @@ CREATE TABLE IF NOT EXISTS broker_summaries (
     total_lot BIGINT NOT NULL,
     total_transaction_value BIGINT NOT NULL,
     price_average NUMERIC(20, 2) NOT NULL,
+    frequency BIGINT NOT NULL,
     PRIMARY KEY (symbol, broker, action, investor_type, market_board, summary_date)
 ) PARTITION BY RANGE (summary_date);
 

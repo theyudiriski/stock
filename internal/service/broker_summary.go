@@ -53,6 +53,7 @@ type BrokerBuy struct {
 	InvestorType     InvestorType `json:"-"` // D: Domestic, F: Foreign
 	Action           Action       `json:"-"` // B: Buy, S: Sell
 	MarketBoard      MarketBoard  `json:"-"` // RG: Regular, NG: Negosiasi, TN: Tunai
+	Frequency        string       `json:"freq"`
 }
 
 type BrokerSell struct {
@@ -68,4 +69,5 @@ type BrokerSell struct {
 	InvestorType      InvestorType `json:"-"` // D: Domestic, F: Foreign
 	Action            Action       `json:"-"` // B: Buy, S: Sell
 	MarketBoard       MarketBoard  `json:"-"` // RG: Regular, NG: Negosiasi, TN: Tunai
+	Frequency         string       `json:"freq"`
 }
