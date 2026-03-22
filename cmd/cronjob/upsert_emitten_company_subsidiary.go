@@ -37,8 +37,9 @@ func NewUpsertEmittenCompanySubsidiary(symbols string) *upsertEmittenCompanySubs
 		},
 		stockbit:        stockbit,
 		subsidiaryStore: subsidiaryStore,
-		ctx:             ctx,
-		cancel:          cancel,
+
+		ctx:    ctx,
+		cancel: cancel,
 	}
 }
 

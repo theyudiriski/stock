@@ -28,6 +28,12 @@ database:
   conn_max_lifetime: 10m
   ssl_mode: disable
 
+redis:
+  host: localhost
+  port: 6379
+  password: 
+  db: 
+
 proxy:
   enabled:
     stockbit: false

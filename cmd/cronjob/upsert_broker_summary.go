@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"stock/config"
+	"stock/internal/cache"
 	"stock/internal/httpclient"
 	"stock/internal/logger"
 	"stock/internal/postgres"
@@ -27,11 +28,16 @@ func NewUpsertBrokerSummary(fromDate, toDate, symbols string) *upsertBrokerSumma
 	emittenStore := postgres.NewEmittenStore(db)
 	brokerSummaryStore := postgres.NewBrokerSummaryStore(db)
 
+	holidayStore := postgres.NewHolidayStore(db)
+	redisClient := cache.NewRedisClient(config.LoadRedis())
+	holidayCache := cache.NewHolidayCache(redisClient, holidayStore)
+
 	stockbit := stockbit.NewStockbit(log, httpclient.New(service.ServiceNameStockbit))
 
 	return &upsertBrokerSummary{
 		stockbit:           stockbit,
 		brokerSummaryStore: brokerSummaryStore,
+		holidayCache:       holidayCache,
 		base: base{
 			logger:       log,
 			emittenStore: emittenStore,
@@ -48,6 +54,7 @@ type upsertBrokerSummary struct {
 	base
 	stockbit           service.Stockbit
 	brokerSummaryStore service.BrokerSummaryStore
+	holidayCache       service.HolidayStore // store layer contains cache and postgres
 
 	ctx    context.Context
 	cancel context.CancelFunc
@@ -72,10 +79,19 @@ func (u *upsertBrokerSummary) Run() (err error) {
 
 	from, err := time.Parse(time.DateOnly, u.fromDate)
 	if err != nil {
+		u.logger.ErrorContext(ctx, "failed to parse fromDate", "fromDate", u.fromDate, "error", err)
 		return err
 	}
+
 	to, err := time.Parse(time.DateOnly, u.toDate)
 	if err != nil {
+		u.logger.ErrorContext(ctx, "failed to parse toDate", "toDate", u.toDate, "error", err)
+		return err
+	}
+
+	holidays, err := u.holidayCache.GetHolidaySet(ctx, from, to)
+	if err != nil {
+		u.logger.ErrorContext(ctx, "failed to get holidays", "fromDate", from, "toDate", to, "error", err)
 		return err
 	}
 
@@ -93,7 +109,7 @@ func (u *upsertBrokerSummary) Run() (err error) {
 			defer func() { <-sem }()
 
 			for date := from; !date.After(to); date = date.AddDate(0, 0, 1) {
-				if date.Weekday() != time.Saturday && date.Weekday() != time.Sunday {
+				if date.Weekday() != time.Saturday && date.Weekday() != time.Sunday && !holidays[date.Format(time.DateOnly)] {
 					summaryDate := date.Format(time.DateOnly)
 
 					result, err := stockbit.Retryable(func() (*brokerSummary, error) {

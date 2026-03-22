@@ -38,8 +38,9 @@ func NewUpsertShareholderChart(symbols string) *upsertShareholderChart {
 		},
 		stockbit:         stockbit,
 		shareholderStore: shareholderStore,
-		ctx:              ctx,
-		cancel:           cancel,
+
+		ctx:    ctx,
+		cancel: cancel,
 	}
 }
 

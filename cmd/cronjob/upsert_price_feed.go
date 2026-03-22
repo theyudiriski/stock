@@ -37,8 +37,9 @@ func NewUpsertPriceFeed(fromDate, toDate, symbols string) *upsertPriceFeed {
 		},
 		stockbit:       stockbit,
 		priceFeedStore: priceFeedStore,
-		ctx:            ctx,
-		cancel:         cancel,
+
+		ctx:    ctx,
+		cancel: cancel,
 
 		fromDate: fromDate,
 		toDate:   toDate,

@@ -84,8 +84,6 @@ func main() {
 	switch serverType {
 	case "api":
 		runner = server.New()
-	case "cronjob-upsert-emitten-profile":
-		runner = cronjob.NewUpsertEmittenProfile(symbols)
 	case "cronjob-upsert-broker-summary":
 		runner = cronjob.NewUpsertBrokerSummary(fromDate, toDate, symbols)
 	case "cronjob-upsert-price-feed":
@@ -100,6 +98,8 @@ func main() {
 		runner = cronjob.NewUpsertShareholderChart(symbols)
 	case "cronjob-get-trade-book":
 		runner = cronjob.NewGetTradeBook(symbols)
+	// case "cronjob-upsert-emitten-profile":
+	// 	runner = cronjob.NewUpsertEmittenProfile(symbols)
 	// case "cronjob-upsert-subsector":
 	// 	runner = cronjob.NewUpsertSubsector()
 	// case "cronjob-upsert-emitten-profile-info":
